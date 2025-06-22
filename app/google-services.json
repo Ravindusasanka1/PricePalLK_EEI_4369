@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "995140065587",
+    "project_id": "pricepallk-9afd9",
+    "storage_bucket": "pricepallk-9afd9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:995140065587:android:4e5b68e4a3c6181bd90646",
+        "android_client_info": {
+          "package_name": "com.example.pricepallk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHj3Yecj0XUjQDuAZGLcpCV4CosC_3JDM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">PricePalLK</string>
+    <string name="back_to_login"><u>Back to Login</u></string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBSHLvOB0PNOULibA-lNG0ccDxwb5-Z_AY</string>
+</resources>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PricePalLK"
+        tools:targetApi="31">
+        <activity
+            android:name=".LocationActivity"
+            android:exported="true"
+            android:label="LocationActivity"/>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBSHLvOB0PNOULibA-lNG0ccDxwb5-Z_AY" />
+
+        <activity
+            android:name=".InfoActivity"
+            android:exported="true"
+            android:label="InfoActivity" />
+        <activity
+            android:name=".DeleteProductActivity"
+            android:exported="true"
+            android:label="DeleteProductActivity" />
+        <activity
+            android:name=".AddproductActivity"
+            android:exported="true"
+            android:label="AddproductActivity" />
+        <activity
+            android:name=".StatsActivity"
+            android:exported="true"
+            android:label="StatsActivity" />
+        <activity
+            android:name=".DashboardActivity"
+            android:exported="true"
+            android:label="DashboardActivity" />
+        <activity
+            android:name=".Registerscreen"
+            android:exported="true"
+            android:label="Registerscreen" />
+        <activity
+            android:name=".ForgotpasswordActivity"
+            android:exported="true"
+            android:label="ForgotpasswordActivity" />
+        <activity
+            android:name=".HomeActivity"
+            android:exported="true"
+            android:label="Home" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
