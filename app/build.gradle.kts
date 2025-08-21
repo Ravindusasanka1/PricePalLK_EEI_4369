@@ -44,6 +44,7 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation(libs.play.services.maps)
     implementation(libs.play.services.location)
+    implementation(libs.places)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

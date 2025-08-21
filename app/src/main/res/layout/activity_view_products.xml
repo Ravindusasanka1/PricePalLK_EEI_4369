@@ -2,46 +2,64 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".DeleteProductActivity">
+    tools:context=".ViewProductsActivity">
 
-    <TextView
-        android:id="@+id/textViewHeader"
-        android:layout_width="wrap_content"
+    <!-- Blue Header -->
+    <ImageView
+        android:id="@+id/imageViewHeader"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Delete Product"
-        android:textSize="24sp"
-        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/rectangle1" />
 
+    <TextView
+        android:id="@+id/textViewTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Products"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/imageViewHeader"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/imageViewHeader" />
+
+    <!-- Search Box -->
     <EditText
         android:id="@+id/editTextSearch"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
+        android:background="@android:drawable/editbox_background"
+        android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawablePadding="8dp"
         android:hint="Search products"
         android:inputType="text"
         android:padding="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewHeader" />
+        app:layout_constraintTop_toBottomOf="@+id/imageViewHeader" />
 
+    <!-- Product List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewProducts"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextSearch" />
 
+    <!-- Loading Indicator -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -52,6 +70,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextSearch" />
 
+    <!-- Empty State View -->
     <LinearLayout
         android:id="@+id/layoutEmptyState"
         android:layout_width="0dp"
@@ -82,7 +101,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Add products first or try a different search"
+            android:text="Try a different search term"
             android:textAlignment="center" />
     </LinearLayout>
 

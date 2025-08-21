@@ -9,29 +9,25 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 public class HomeActivity extends AppCompatActivity {
+    // Add FirebaseAuth at class level
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
         if (getSupportActionBar() != null) { // Hide the action bar
             getSupportActionBar().hide();
         }
+
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
 
         // connect the Login button
         Button loginButton = findViewById(R.id.button);
@@ -51,47 +47,69 @@ public class HomeActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Initialize Firebase if not already initialized
-                if (FirebaseApp.getApps(HomeActivity.this).isEmpty()) {
-                    FirebaseApp.initializeApp(HomeActivity.this);
+                // Password strength validation
+                if (!isValidPassword(password)) {
+                    return;
                 }
 
-                // Get Firestore instance
-                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                // Sign in with Firebase Authentication
+                mAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(HomeActivity.this, task -> {
+                        if (task.isSuccessful()) {
+                            // Sign in success
+                            Log.d("Firebase", "signInWithEmail:success");
+                            Toast.makeText(HomeActivity.this, "Login successful",
+                                    Toast.LENGTH_SHORT).show();
 
-                // Create a map with the user data
-                Map<String, Object> user = new HashMap<>();
-                user.put("email", email);
-                user.put("password", password); // Note: In a real app, never store plain passwords
-                user.put("timestamp", new Date());
+                            // Get current user ID
+                            String userId = mAuth.getCurrentUser().getUid();
 
-                // Save to Firestore
-                db.collection("users")
-                    .add(user)
-                    .addOnSuccessListener(documentReference -> {
-                        Log.d("Firestore", "User added with ID: " + documentReference.getId());
-                        Toast.makeText(HomeActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                            // Check user type in Firestore
+                            FirebaseFirestore db = FirebaseFirestore.getInstance();
+                            db.collection("users").document(userId).get()
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    if (documentSnapshot.exists()) {
+                                        // Get user type
+                                        String userType = documentSnapshot.getString("userType");
+                                        Log.d("Firebase", "User type: " + userType);
 
-                        // Navigate to dashboard screen
-                        Intent intent = new Intent(HomeActivity.this, DashboardActivity.class);
-                        startActivity(intent);
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.w("Firestore", "Error adding user", e);
-                        Toast.makeText(HomeActivity.this, "Login failed: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
+                                        // Navigate based on user type
+                                        Intent intent;
+                                        if (userType != null && userType.equals("customer")) {
+                                            intent = new Intent(HomeActivity.this, CustomerDashboardActivity.class);
+                                        } else {
+                                            intent = new Intent(HomeActivity.this, DashboardActivity.class);
+                                        }
+                                        startActivity(intent);
+                                        finish();
+                                    } else {
+                                        Log.e("Firebase", "User document does not exist");
+                                        Toast.makeText(HomeActivity.this, "User data not found",
+                                                Toast.LENGTH_SHORT).show();
+
+                                        // Default to DashboardActivity if user data not found
+                                        Intent intent = new Intent(HomeActivity.this, DashboardActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("Firebase", "Error getting user data", e);
+                                    Toast.makeText(HomeActivity.this,
+                                            "Error determining user type", Toast.LENGTH_SHORT).show();
+
+                                    // Default to DashboardActivity on error
+                                    Intent intent = new Intent(HomeActivity.this, DashboardActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                });
+                        } else {
+                            // Sign in failed
+                            Log.w("Firebase", "signInWithEmail:failure", task.getException());
+                            Toast.makeText(HomeActivity.this, "Authentication failed: " +
+                                    task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     });
-            }
-        });
-
-        // Setup for "Forgot password?" TextView
-        TextView forgotPasswordTextView = findViewById(R.id.textView4);
-        forgotPasswordTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to forgot password screen
-                Intent intent = new Intent(HomeActivity.this, ForgotpasswordActivity.class);
-                startActivity(intent);
             }
         });
 
@@ -105,5 +123,51 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        // Setup for "Forgot password?" TextView
+        TextView forgotPasswordTextView = findViewById(R.id.textView4);
+        forgotPasswordTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate to forgot password screen
+                Intent intent = new Intent(HomeActivity.this, ForgotpasswordActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    // Password validation method
+    private boolean isValidPassword(String password) {
+        // Check password length (minimum 8 characters)
+        if (password.length() < 8) {
+            Toast.makeText(HomeActivity.this, "Password must be at least 8 characters long", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Check for at least one uppercase letter
+        if (!password.matches(".*[A-Z].*")) {
+            Toast.makeText(HomeActivity.this, "Password must contain at least one uppercase letter", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Check for at least one lowercase letter
+        if (!password.matches(".*[a-z].*")) {
+            Toast.makeText(HomeActivity.this, "Password must contain at least one lowercase letter", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Check for at least one digit
+        if (!password.matches(".*\\d.*")) {
+            Toast.makeText(HomeActivity.this, "Password must contain at least one number", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Check for at least one special character
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*")) {
+            Toast.makeText(HomeActivity.this, "Password must contain at least one special character", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
 }

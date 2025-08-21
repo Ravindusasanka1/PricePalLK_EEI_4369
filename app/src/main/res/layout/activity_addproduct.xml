@@ -41,7 +41,7 @@
         android:layout_height="48dp"
         android:ems="10"
         android:hint="Price"
-        android:inputType="textEmailAddress"
+        android:inputType="number"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.347"
@@ -56,22 +56,28 @@
         android:text="Add product"
         android:textColor="@color/black"
         android:textStyle="bold"
+        android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.022"
-        tools:textSize="20sp" />
+        app:layout_constraintVertical_bias="0.022" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigationView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:labelVisibilityMode="labeled"
+    <Button
+        android:id="@+id/button9"
+        android:layout_width="290dp"
+        android:layout_height="73dp"
+        android:backgroundTint="#60A5FA"
+        android:gravity="center"
+        android:text="Button"
+        android:textSize="20sp"
+        app:cornerRadius="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.735" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

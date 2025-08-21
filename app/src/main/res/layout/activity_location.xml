@@ -12,7 +12,9 @@
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/rectangle1" />
@@ -36,20 +38,36 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/btnFindNearby"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigationView"
-        android:layout_width="match_parent"
+    <!-- Find Nearby Button -->
+    <Button
+        android:id="@+id/btnFindNearby"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:labelVisibilityMode="labeled"
+        android:layout_margin="16dp"
+        android:text="Find Nearby Supermarkets"
+        android:backgroundTint="#60A5FA"
+        app:cornerRadius="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- Location Status Indicator -->
+    <TextView
+        android:id="@+id/tvLocationStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="#80000000"
+        android:padding="8dp"
+        android:text="Getting location..."
+        android:textColor="#FFFFFF"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 </androidx.constraintlayout.widget.ConstraintLayout>

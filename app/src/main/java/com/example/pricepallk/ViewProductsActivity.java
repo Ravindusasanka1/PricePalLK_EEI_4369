@@ -1,6 +1,6 @@
-
 package com.example.pricepallk;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -9,20 +9,18 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -30,12 +28,11 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DeleteProductActivity extends AppCompatActivity {
-    private static final String TAG = "DeleteProductActivity";
+public class ViewProductsActivity extends AppCompatActivity {
+    private static final String TAG = "ViewProductsActivity";
 
     // Firebase
     private FirebaseFirestore db;
-    private FirebaseAuth mAuth;
 
     // UI Components
     private RecyclerView recyclerView;
@@ -46,18 +43,20 @@ public class DeleteProductActivity extends AppCompatActivity {
     // Data
     private ProductAdapter adapter;
     private List<Product> productList;
+    private List<Product> filteredList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_delete_product);
+        setContentView(R.layout.activity_view_products);
+
+        // Hide action bar if present
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
         // Initialize Firebase
         db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
 
         // Initialize UI components
         recyclerView = findViewById(R.id.recyclerViewProducts);
@@ -67,12 +66,13 @@ public class DeleteProductActivity extends AppCompatActivity {
 
         // Setup RecyclerView
         productList = new ArrayList<>();
-        adapter = new ProductAdapter(productList);
+        filteredList = new ArrayList<>();
+        adapter = new ProductAdapter(filteredList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        // Load products
-        loadProducts("");
+        // Load products from Firestore
+        loadProducts();
 
         // Setup search functionality
         searchEditText.addTextChangedListener(new TextWatcher() {
@@ -84,32 +84,24 @@ public class DeleteProductActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                loadProducts(s.toString());
+                filterProducts(s.toString());
             }
         });
     }
 
-    private void loadProducts(String searchQuery) {
+    private void loadProducts() {
         // Show loading state
         progressBar.setVisibility(View.VISIBLE);
         emptyStateLayout.setVisibility(View.GONE);
 
-        // Get current user ID
-        String userId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
-
-        // Query Firestore - only show this retailer's products
-        Query query = db.collection("products").whereEqualTo("retailerId", userId);
-
-        // If search query is provided, filter by product name
-        if (!searchQuery.isEmpty()) {
-            // Firebase uses case-sensitive queries, but we can filter client-side
-            query = db.collection("products").whereEqualTo("retailerId", userId);
-        }
-
-        query.get()
+        // Query Firestore for all products, ordered by name
+        db.collection("products")
+                .orderBy("productName", Query.Direction.ASCENDING)
+                .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     progressBar.setVisibility(View.GONE);
                     productList.clear();
+                    filteredList.clear();
 
                     if (queryDocumentSnapshots.isEmpty()) {
                         emptyStateLayout.setVisibility(View.VISIBLE);
@@ -117,24 +109,19 @@ public class DeleteProductActivity extends AppCompatActivity {
                     }
 
                     for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        String id = document.getId();
                         String name = document.getString("productName");
+                        String retailer = document.getString("retailerName");
+                        Double price = document.getDouble("price");
 
-                        // Client-side filtering by name if search query is provided
-                        if (!searchQuery.isEmpty() &&
-                            (name == null || !name.toLowerCase().contains(searchQuery.toLowerCase()))) {
-                            continue;
+                        if (name != null && retailer != null && price != null) {
+                            Product product = new Product(id, name, retailer, price);
+                            productList.add(product);
+                            filteredList.add(product);
                         }
-
-                        Product product = new Product(
-                                document.getId(),
-                                name,
-                                document.getString("retailerName"),
-                                document.getDouble("price")
-                        );
-                        productList.add(product);
                     }
 
-                    if (productList.isEmpty()) {
+                    if (filteredList.isEmpty()) {
                         emptyStateLayout.setVisibility(View.VISIBLE);
                     }
 
@@ -143,11 +130,32 @@ public class DeleteProductActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
                     emptyStateLayout.setVisibility(View.VISIBLE);
-                    Toast.makeText(DeleteProductActivity.this,
-                            "Error loading products: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
                     Log.e(TAG, "Error loading products", e);
                 });
+    }
+
+    private void filterProducts(String query) {
+        filteredList.clear();
+
+        if (query.isEmpty()) {
+            filteredList.addAll(productList);
+        } else {
+            String lowerCaseQuery = query.toLowerCase();
+            for (Product product : productList) {
+                if (product.name.toLowerCase().contains(lowerCaseQuery) ||
+                    product.retailer.toLowerCase().contains(lowerCaseQuery)) {
+                    filteredList.add(product);
+                }
+            }
+        }
+
+        adapter.notifyDataSetChanged();
+
+        if (filteredList.isEmpty()) {
+            emptyStateLayout.setVisibility(View.VISIBLE);
+        } else {
+            emptyStateLayout.setVisibility(View.GONE);
+        }
     }
 
     // Product model class
@@ -226,19 +234,6 @@ public class DeleteProductActivity extends AppCompatActivity {
             priceTextView.setLayoutParams(priceParams);
             layout.addView(priceTextView);
 
-            TextView deleteHintTextView = new TextView(parent.getContext());
-            deleteHintTextView.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
-            deleteHintTextView.setText("Tap to delete");
-            deleteHintTextView.setTextSize(12);
-            deleteHintTextView.setTextColor(Color.RED);
-            deleteHintTextView.setTypeface(null, android.graphics.Typeface.ITALIC);
-            LinearLayout.LayoutParams deleteParams = (LinearLayout.LayoutParams) deleteHintTextView.getLayoutParams();
-            deleteParams.topMargin = dpToPx(8);
-            deleteHintTextView.setLayoutParams(deleteParams);
-            layout.addView(deleteHintTextView);
-
             return new ViewHolder(cardView, productNameTextView, retailerNameTextView, priceTextView);
         }
 
@@ -246,10 +241,8 @@ public class DeleteProductActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Product product = products.get(position);
             holder.productNameTextView.setText(product.name);
-            holder.retailerNameTextView.setText(product.retailer);
+            holder.retailerNameTextView.setText("Retailer: " + product.retailer);
             holder.priceTextView.setText("Rs. " + product.price);
-
-            holder.itemView.setOnClickListener(v -> showDeleteConfirmation(product));
         }
 
         @Override
@@ -275,43 +268,5 @@ public class DeleteProductActivity extends AppCompatActivity {
     private int dpToPx(int dp) {
         float density = getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
-    }
-
-    private void showDeleteConfirmation(Product product) {
-        new AlertDialog.Builder(this)
-                .setTitle("Delete Product")
-                .setMessage("Are you sure you want to delete " + product.name + "?")
-                .setPositiveButton("Delete", (dialog, which) -> deleteProduct(product))
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    private void deleteProduct(Product product) {
-        // Show loading
-        progressBar.setVisibility(View.VISIBLE);
-
-        // Delete from Firestore
-        db.collection("products").document(product.id)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    // Remove from local list and update UI
-                    productList.remove(product);
-                    adapter.notifyDataSetChanged();
-
-                    if (productList.isEmpty()) {
-                        emptyStateLayout.setVisibility(View.VISIBLE);
-                    }
-
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(DeleteProductActivity.this,
-                            "Product deleted successfully", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(DeleteProductActivity.this,
-                            "Failed to delete product: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Error deleting product", e);
-                });
     }
 }
